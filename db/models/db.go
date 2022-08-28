@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	_ "github.com/golang-migrate/migrate/v4"
 )
 
 type DBTX interface {
