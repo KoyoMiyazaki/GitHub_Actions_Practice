@@ -10,8 +10,14 @@ dropdb:
 migrateup:
 	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up
 
+migrateup1:
+	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up 1
+
 migratedown:
 	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down
+
+migratedown1:
+	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
 
 test:
 	go test -v -cover ./...
@@ -22,4 +28,4 @@ server:
 mock:
 	mockery --name=Store --filename=store.go --recursive
 
-.PHONY: postgres createdb dropdb migrateup migratedown server mock
+.PHONY: postgres createdb dropdb migrateup migratedown server mock migrateup1 migratedown1
