@@ -19,4 +19,7 @@ test:
 server:
 	go run main.go
 
-.PHONY: postgres createdb dropdb migrateup migratedown server
+mock:
+	mockery --name=Store --filename=store.go --recursive
+
+.PHONY: postgres createdb dropdb migrateup migratedown server mock
