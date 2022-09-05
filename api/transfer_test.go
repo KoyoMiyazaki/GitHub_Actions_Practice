@@ -265,7 +265,7 @@ func TestCreateTransferAPI(t *testing.T) {
 			storeMock := mocks.NewStore(t)
 			tc.buildStubs(storeMock)
 
-			server := NewServer(storeMock)
+			server := newTestServer(t, storeMock)
 			recorder := httptest.NewRecorder()
 
 			data, err := json.Marshal(tc.requestBody)

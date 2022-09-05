@@ -178,13 +178,121 @@ func TestCreateUserAPI(t *testing.T) {
 			storeMock := mocks.NewStore(t)
 			tc.buildStubs(storeMock)
 
-			server := NewServer(storeMock)
+			server := newTestServer(t, storeMock)
 			recorder := httptest.NewRecorder()
 
 			data, err := json.Marshal(tc.requestBody)
 			require.NoError(t, err)
 
 			url := "/users"
+			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkResponse(t, recorder)
+		})
+	}
+}
+
+func TestLoginUserAPI(t *testing.T) {
+	user, password := randomUser(t)
+
+	testCases := []struct {
+		name          string
+		requestBody   gin.H
+		buildStubs    func(storeMock *mocks.Store)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			requestBody: gin.H{
+				"username": user.Username,
+				"password": password,
+			},
+			buildStubs: func(storeMock *mocks.Store) {
+				storeMock.
+					On("GetUser", mock.Anything, user.Username).
+					Return(user, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+			},
+		},
+		{
+			name: "UserNotFound",
+			requestBody: gin.H{
+				"username": user.Username,
+				"password": password,
+			},
+			buildStubs: func(storeMock *mocks.Store) {
+				storeMock.
+					On("GetUser", mock.Anything, mock.Anything).
+					Return(db.User{}, sql.ErrNoRows)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			name: "IncorrectPassword",
+			requestBody: gin.H{
+				"username": user.Username,
+				"password": "wrongpass",
+			},
+			buildStubs: func(storeMock *mocks.Store) {
+				storeMock.
+					On("GetUser", mock.Anything, mock.Anything).
+					Return(user, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			name: "InternalError",
+			requestBody: gin.H{
+				"username": user.Username,
+				"password": password,
+			},
+			buildStubs: func(storeMock *mocks.Store) {
+				storeMock.
+					On("GetUser", mock.Anything, mock.Anything).
+					Return(db.User{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			name: "InvalidUsername",
+			requestBody: gin.H{
+				"username": "invalid#user",
+				"password": password,
+			},
+			buildStubs: func(storeMock *mocks.Store) {
+				storeMock.
+					On("GetUser", mock.Anything, mock.Anything).
+					Maybe()
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			storeMock := mocks.NewStore(t)
+			tc.buildStubs(storeMock)
+
+			server := newTestServer(t, storeMock)
+			recorder := httptest.NewRecorder()
+
+			data, err := json.Marshal(tc.requestBody)
+			require.NoError(t, err)
+
+			url := "/users/login"
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
