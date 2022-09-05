@@ -45,7 +45,7 @@ func (maker *JWTMaker) CreateToken(username string, duration time.Duration) (str
 	return jwtToken.SignedString([]byte(maker.secretKey))
 }
 
-func (maker *JWTMaker) VerifyToken(tokenString string) (*ResultPayload, error) {
+func (maker *JWTMaker) VerifyToken(tokenString string) (*Payload, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &CustomJWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrInvalidToken
@@ -64,7 +64,7 @@ func (maker *JWTMaker) VerifyToken(tokenString string) (*ResultPayload, error) {
 	}
 
 	if claims, ok := token.Claims.(*CustomJWTClaims); ok && token.Valid {
-		return &ResultPayload{
+		return &Payload{
 			ID:        claims.ID,
 			Username:  claims.Username,
 			IssuedAt:  claims.IssuedAt.Local(),

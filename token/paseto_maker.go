@@ -50,7 +50,7 @@ func (maker *PasetoMaker) CreateToken(username string, duration time.Duration) (
 	return maker.paseto.Encrypt(maker.symmetricKey, jsonToken, nil)
 }
 
-func (maker *PasetoMaker) VerifyToken(token string) (*ResultPayload, error) {
+func (maker *PasetoMaker) VerifyToken(token string) (*Payload, error) {
 	var payload paseto.JSONToken
 
 	err := maker.paseto.Decrypt(token, maker.symmetricKey, &payload, nil)
@@ -66,7 +66,7 @@ func (maker *PasetoMaker) VerifyToken(token string) (*ResultPayload, error) {
 	if err != nil {
 		return nil, ErrInvalidToken
 	}
-	return &ResultPayload{
+	return &Payload{
 		ID:        uuid,
 		Username:  payload.Get("username"),
 		IssuedAt:  payload.IssuedAt,

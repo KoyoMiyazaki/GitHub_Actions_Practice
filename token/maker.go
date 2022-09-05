@@ -14,10 +14,10 @@ var (
 
 type Maker interface {
 	CreateToken(username string, duration time.Duration) (string, error)
-	VerifyToken(token string) (*ResultPayload, error)
+	VerifyToken(token string) (*Payload, error)
 }
 
-type ResultPayload struct {
+type Payload struct {
 	ID        uuid.UUID `json:"id"`
 	Username  string    `json:"username"`
 	IssuedAt  time.Time `json:"iat"`
